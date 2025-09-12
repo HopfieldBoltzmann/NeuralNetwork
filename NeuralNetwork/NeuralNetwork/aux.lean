@@ -132,14 +132,9 @@ lemma ENNReal.le_iSup_finset {α : Type} {s : Finset α} {f : α → ENNReal} :
 @[simp]
 lemma ENNReal.tsum_pos_of_exists {α : Type} {f : α → ENNReal} (h : ∃ a : α, f a > 0) :
   (∑' a, f a) > 0 := by
-  -- Extract the element with positive value
   rcases h with ⟨a₀, h_pos⟩
-
-  -- Show that sum is at least as large as the term f a₀
   have h_le : f a₀ ≤ ∑' a, f a := by
     apply ENNReal.le_tsum
-
-  -- Since f a₀ > 0 and sum ≥ f a₀, the sum must be positive
   exact lt_of_lt_of_le h_pos h_le
 
 /-- If there exists a positive element satisfying filter condition, filtered sum is positive --/

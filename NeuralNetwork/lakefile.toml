@@ -23,3 +23,6 @@ rev = "v4.22.0"
 
 [[lean_lib]]
 name = "NeuralNetwork"
+
+[[lean_lib]]
+name = "Mathematics"

@@ -1,13 +1,24 @@
-# NeuralNetwork
+# Hopfield Networks
 
-## GitHub configuration
+## Description
+This repository contains Lean formalizations related to Hopfield Networks written in the *Lean theorem prover* language.
 
-To set up your new GitHub repository, follow these steps:
+Below is a brief overview of the key files:
 
-* Under your repository name, click **Settings**.
-* In the **Actions** section of the sidebar, click "General".
-* Check the box **Allow GitHub Actions to create and approve pull requests**.
-* Click the **Pages** section of the settings sidebar.
-* In the **Source** dropdown menu, select "GitHub Actions".
+- **`HopfieldNet/Asym.lean`** – Formalization of asymmetric Hopfield networks.  
+- **`HopfieldNet/HN.lean`** – Formalization of symmetric Hopfield networks.  
+- **`HopfieldNet/NN.lean`** – Formalization of general neural networks.  
+- **`HopfieldNet/Stochastic.lean`** – Formalization of stochastic theory for Hopfield networks.  
+- **`HopfieldNet/aux.lean`** – Auxiliary lemmas.  
+- **`HopfieldNet/test.lean`** – Computations and implementation of the Hebbian learning algorithm.  
 
-After following the steps above, you can remove this section from the README file.
+For more details, see the individual files.
+
+## Installation
+Installing Lean can be done by following the [leanprover community website](https://leanprover-community.github.io/get_started.html).
+Our project uses Lean version 4.22.0.
+
+This repository can then be cloned by following the instructions on [this page](https://leanprover-community.github.io/install/project.html).
+
+## License
+See LICENSE.md

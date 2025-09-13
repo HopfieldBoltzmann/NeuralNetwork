@@ -3,9 +3,12 @@ import NeuralNetwork.TSAux
 import NeuralNetwork.toCanonicalEnsemble
 import Mathematics.Probability.DetailedBalanceGen
 import Mathlib.Probability.Kernel.Composition.Prod
+import PhysLean.StatisticalMechanics.CanonicalEnsemble.Finite
 
 set_option linter.unusedSimpArgs false
 set_option linter.unusedSectionVars false
+set_option linter.style.openClassical false
+set_option linter.style.longLine false
 
 /-! ### Concrete Hopfield Energy and Fintype Instances
 -/
@@ -14,7 +17,7 @@ namespace Matrix
 
 open scoped Classical Finset Set BigOperators
 
-variable {ι} [DecidableEq ι] [CommRing R]
+variable {ι R} [DecidableEq ι] [CommRing R]
 
 /-- Decomposition of an updated vector as original plus a single–site bump. -/
 lemma update_decomp (x : ι → R) (i : ι) (v : R) :
@@ -320,24 +323,21 @@ variable {NN : NeuralNetwork R U σ} [TwoStateNeuralNetwork NN]
 
 @[simp]
 lemma updPos_act_at_u (s : NN.State) (u : U) :
-    (updPos (NN:=NN) s u).act u = TwoStateNeuralNetwork.σ_pos (NN:=NN) := by
+    (updPos (NN := NN) s u).act u = TwoStateNeuralNetwork.σ_pos (NN := NN) := by
   simp [updPos, Function.update_self]
 
 lemma updPos_act_noteq (s : NN.State) (u v : U) (h : v ≠ u) :
-    (updPos (NN:=NN) s u).act v = s.act v := by
-  simp [updPos, Function.update_self h]
-  simp_all only [ne_eq, not_false_eq_true, Function.update_of_ne]
+    (updPos (NN := NN) s u).act v = s.act v := by
+  simp [updPos, Function.update_of_ne h]
 
 @[simp]
 lemma updNeg_act_at_u (s : NN.State) (u : U) :
-    (updNeg (NN:=NN) s u).act u = TwoStateNeuralNetwork.σ_neg (NN:=NN) := by
+    (updNeg (NN := NN) s u).act u = TwoStateNeuralNetwork.σ_neg (NN := NN) := by
   simp [updNeg, Function.update_self]
 
 lemma updNeg_act_noteq (s : NN.State) (u v : U) (h : v ≠ u) :
-    (updNeg (NN:=NN) s u).act v = s.act v := by
-  simp [updNeg, Function.update_self h]
-  simp_all only [ne_eq, not_false_eq_true, Function.update_of_ne]
-
+    (updNeg (NN := NN) s u).act v = s.act v := by
+  simp [updNeg, Function.update_of_ne h]
 -- Also need strict inequalities for logisticProb for detailed balance ratios.
 lemma logisticProb_pos (x : ℝ) : 0 < logisticProb x := by
   unfold logisticProb
@@ -495,7 +495,7 @@ variable {U : Type} [Fintype U] [DecidableEq U] [Nonempty U]
 def BinarySetReal := {x : ℝ // x = 1 ∨ x = -1}
 
 /-- Decidable equality inherited from `ℝ` (classical). -/
-noncomputable instance  : DecidableEq BinarySetReal := by
+noncomputable instance : DecidableEq BinarySetReal := by
   classical
   infer_instance
 
@@ -539,24 +539,24 @@ open CanonicalEnsemble ProbabilityTheory TwoState PMF
 variable {U σ : Type} [Fintype U] [DecidableEq U] [Nonempty U]
 variable (NN : NeuralNetwork ℝ U σ) [Fintype NN.State] [Nonempty NN.State]
 variable [TwoStateNeuralNetwork NN] [TwoStateExclusive NN]
-variable (spec : TwoState.EnergySpec' (NN:=NN))
+variable (spec : TwoState.EnergySpec' (NN := NN))
 
 variable (p : Params NN) (T : Temperature)
 
 /-- The Canonical Ensemble obtained from params `p` (builds a local Hamiltonian instance from `spec`). -/
 noncomputable def CEparams (p : Params NN) : CanonicalEnsemble NN.State :=
   let _ : IsHamiltonian (U:=U) (σ:=σ) NN :=
-    IsHamiltonian_of_EnergySpec' (NN:=NN) (spec:=spec)
+    IsHamiltonian_of_EnergySpec' (NN := NN) (spec:=spec)
   hopfieldCE (U:=U) (σ:=σ) NN p
 
 /-- Boltzmann probability of state `s` at temperature `T`. -/
 noncomputable def P (p : Params NN) (T : Temperature) (s : NN.State) : ℝ :=
-  (CEparams (NN:=NN) (spec:=spec) p).probability T s
+  (CEparams (NN := NN) (spec:=spec) p).probability T s
 
 @[simp] lemma energy_eq_spec (p : Params NN) (s : NN.State) :
     let _ : IsHamiltonian (U:=U) (σ:=σ) NN :=
-      IsHamiltonian_of_EnergySpec' (NN:=NN) (spec:=spec)
-    IsHamiltonian.energy (NN:=NN) p s = spec.E p s := by
+      IsHamiltonian_of_EnergySpec' (NN := NN) (spec:=spec)
+    IsHamiltonian.energy (NN := NN) p s = spec.E p s := by
   rfl
 
 open scoped ENNReal Temperature Constants CanonicalEnsemble
@@ -603,23 +603,23 @@ lemma CE_probability_ratio
 
 /-- Ratio of Boltzmann probabilities P(s')/P(s) = exp(-β(E(s')-E(s))). -/
 lemma boltzmann_ratio (s s' : NN.State) :
-    P (NN:=NN) (spec:=spec) p T s' / P (NN:=NN) (spec:=spec) p T s =
+    P (NN := NN) (spec:=spec) p T s' / P (NN := NN) (spec:=spec) p T s =
       Real.exp (-(T.β : ℝ) * (spec.E p s' - spec.E p s)) := by
   have _ : IsHamiltonian (U:=U) (σ:=σ) NN :=
-    IsHamiltonian_of_EnergySpec' (NN:=NN) (spec:=spec)
-  set 𝓒 := CEparams (NN:=NN) (spec:=spec) p
+    IsHamiltonian_of_EnergySpec' (NN := NN) (spec:=spec)
+  set 𝓒 := CEparams (NN := NN) (spec:=spec) p
   have instFin : 𝓒.IsFinite := by
     dsimp [𝓒, CEparams]
     infer_instance
-  have h := CE_probability_ratio (NN:=NN) (𝓒:=𝓒) (T:=T) s s'
+  have h := CE_probability_ratio (NN := NN) (𝓒:=𝓒) (T:=T) s s'
   simpa [P, 𝓒,
-        energy_eq_spec (NN:=NN) (spec:=spec) (p:=p) (s:=s),
-        energy_eq_spec (NN:=NN) (spec:=spec) (p:=p) (s:=s'),
+        energy_eq_spec (NN := NN) (spec:=spec) (p:=p) (s:=s),
+        energy_eq_spec (NN := NN) (spec:=spec) (p:=p) (s:=s'),
         sub_eq_add_neg, add_comm, add_left_comm, add_assoc] using h
 
 -- Define the transition probability K(s→s') in ℝ.
 noncomputable def Kbm (u : U) (s s' : NN.State) : ℝ :=
-  ((TwoState.gibbsUpdate (NN:=NN) (RingHom.id ℝ) p T s u) s').toReal
+  ((TwoState.gibbsUpdate (NN := NN) (RingHom.id ℝ) p T s u) s').toReal
 
 -- Helper lemmas to evaluate K explicitly.
 
@@ -628,21 +628,21 @@ open scoped ENNReal NNReal
 /-- Pointwise evaluation at `updPos` . -/
 private lemma gibbsUpdate_apply_updPos [DecidableEq U] [Fintype U] [Nonempty U]
     (f : ℝ →+* ℝ) (p : Params NN) (T : Temperature) (s : NN.State) (u : U) :
-    (gibbsUpdate (NN:=NN) f p T s u) (updPos (s:=s) (u:=u))
-      = ENNReal.ofReal (probPos (NN:=NN) f p T s u) := by
+    (gibbsUpdate (NN := NN) f p T s u) (updPos (s:=s) (u:=u))
+      = ENNReal.ofReal (probPos (NN := NN) f p T s u) := by
   unfold gibbsUpdate
-  set pPos : ℝ := probPos (NN:=NN) f p T s u
-  have h_nonneg : 0 ≤ pPos := probPos_nonneg (NN:=NN) f p T s u
+  set pPos : ℝ := probPos (NN := NN) f p T s u
+  have h_nonneg : 0 ≤ pPos := probPos_nonneg (NN := NN) f p T s u
   set pPosNN : ℝ≥0 := ⟨pPos, h_nonneg⟩
-  have h_le_real : pPos ≤ 1 := probPos_le_one (NN:=NN) f p T s u
+  have h_le_real : pPos ≤ 1 := probPos_le_one (NN := NN) f p T s u
   have h_leNN : pPosNN ≤ 1 := by
     change (pPosNN : ℝ) ≤ 1
     simpa using h_le_real
-  have hne : updPos (NN:=NN) s u ≠ updNeg (NN:=NN) s u := by
+  have hne : updPos (NN := NN) s u ≠ updNeg (NN := NN) s u := by
     intro h
     have h' := congrArg (fun st => st.act u) h
     simp [updPos, updNeg] at h'
-    exact TwoStateNeuralNetwork.h_pos_ne_neg (NN:=NN) h'
+    exact TwoStateNeuralNetwork.h_pos_ne_neg (NN := NN) h'
   -- bernoulli bind value at updPos is p
   have hcoe : ENNReal.ofReal pPos = (pPosNN : ENNReal) := by
     simp [pPosNN]; exact ENNReal.ofReal_eq_coe_nnreal h_nonneg
@@ -652,21 +652,21 @@ private lemma gibbsUpdate_apply_updPos [DecidableEq U] [Fintype U] [Nonempty U]
 /-- Pointwise evaluation at `updNeg` (ENNReal helper). -/
 lemma gibbsUpdate_apply_updNeg
     (f : ℝ →+* ℝ) (p : Params NN) (T : Temperature) (s : NN.State) (u : U) :
-    (gibbsUpdate (NN:=NN) f p T s u) (updNeg (s:=s) (u:=u))
-      = ENNReal.ofReal (1 - probPos (NN:=NN) f p T s u) := by
+    (gibbsUpdate (NN := NN) f p T s u) (updNeg (s:=s) (u:=u))
+      = ENNReal.ofReal (1 - probPos (NN := NN) f p T s u) := by
   unfold gibbsUpdate
-  set pPos : ℝ := probPos (NN:=NN) f p T s u
-  have h_nonneg : 0 ≤ pPos := probPos_nonneg (NN:=NN) f p T s u
+  set pPos : ℝ := probPos (NN := NN) f p T s u
+  have h_nonneg : 0 ≤ pPos := probPos_nonneg (NN := NN) f p T s u
   set pPosNN : ℝ≥0 := ⟨pPos, h_nonneg⟩
-  have h_le_real : pPos ≤ 1 := probPos_le_one (NN:=NN) f p T s u
+  have h_le_real : pPos ≤ 1 := probPos_le_one (NN := NN) f p T s u
   have h_leNN : pPosNN ≤ 1 := by
     change (pPosNN : ℝ) ≤ 1
     simpa using h_le_real
-  have hne : updPos (NN:=NN) s u ≠ updNeg (NN:=NN) s u := by
+  have hne : updPos (NN := NN) s u ≠ updNeg (NN := NN) s u := by
     intro h
     have h' := congrArg (fun st => st.act u) h
     simp [updPos, updNeg] at h'
-    exact TwoStateNeuralNetwork.h_pos_ne_neg (NN:=NN) h'
+    exact TwoStateNeuralNetwork.h_pos_ne_neg (NN := NN) h'
   have h_eval :=
     PMF.bernoulli_bind_pure_apply_right_of_ne (α:=NN.State) (p:=pPosNN) h_leNN hne
   have hsub : ENNReal.ofReal (1 - pPos) = 1 - (pPosNN : ENNReal) := by
@@ -678,29 +678,29 @@ lemma gibbsUpdate_apply_updNeg
   simp [pPos, pPosNN, h_eval, hsub]
 
 lemma Kbm_apply_updPos (u : U) (s : NN.State) :
-    Kbm NN p T u s (updPos (NN:=NN) s u) = TwoState.probPos (NN:=NN) (RingHom.id ℝ) p T s u := by
+    Kbm NN p T u s (updPos (NN := NN) s u) = TwoState.probPos (NN := NN) (RingHom.id ℝ) p T s u := by
   let f := RingHom.id ℝ
   unfold Kbm; rw [gibbsUpdate_apply_updPos NN f]
   exact ENNReal.toReal_ofReal (probPos_nonneg f p T s u)
 
 lemma Kbm_apply_updNeg (u : U) (s : NN.State) :
-    Kbm NN p T u s (updNeg (NN:=NN) s u) = 1 - TwoState.probPos (NN:=NN) (RingHom.id ℝ) p T s u := by
+    Kbm NN p T u s (updNeg (NN := NN) s u) = 1 - TwoState.probPos (NN := NN) (RingHom.id ℝ) p T s u := by
   let f := RingHom.id ℝ
   unfold Kbm; rw [gibbsUpdate_apply_updNeg NN f]
-  have h_nonneg : 0 ≤ 1 - probPos (NN:=NN) f p T s u := sub_nonneg.mpr (probPos_le_one f p T s u)
+  have h_nonneg : 0 ≤ 1 - probPos (NN := NN) f p T s u := sub_nonneg.mpr (probPos_le_one f p T s u)
   exact ENNReal.toReal_ofReal h_nonneg
 
 lemma Kbm_apply_other (u : U) (s s' : NN.State)
-    (h_pos : s' ≠ updPos (NN:=NN) s u) (h_neg : s' ≠ updNeg (NN:=NN) s u) :
+    (h_pos : s' ≠ updPos (NN := NN) s u) (h_neg : s' ≠ updNeg (NN := NN) s u) :
     Kbm NN p T u s s' = 0 := by
   unfold Kbm gibbsUpdate
   let f := RingHom.id ℝ
-  let pPos := TwoState.probPos (NN:=NN) f p T s u
-  have h_nonneg : 0 ≤ pPos := TwoState.probPos_nonneg (NN:=NN) f p T s u
+  let pPos := TwoState.probPos (NN := NN) f p T s u
+  have h_nonneg : 0 ≤ pPos := TwoState.probPos_nonneg (NN := NN) f p T s u
   let pPosNN : ℝ≥0 := ⟨pPos, h_nonneg⟩
   have h_leNN : pPosNN ≤ 1 := by
     change (pPosNN : ℝ) ≤ 1
-    simpa using TwoState.probPos_le_one (NN:=NN) f p T s u
+    simpa using TwoState.probPos_le_one (NN := NN) f p T s u
   have h_K := PMF.bernoulli_bind_pure_apply_other (α:=NN.State) (p:=pPosNN) h_leNN h_pos h_neg
   simp [h_K]
   simp_all only [ne_eq, Function.const_apply, not_false_eq_true,

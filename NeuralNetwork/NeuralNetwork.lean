@@ -19,7 +19,7 @@ import NeuralNetwork.Basic
 import NeuralNetwork.BoltzmannMachine
 import NeuralNetwork.Convergence
 import NeuralNetwork.Core
-import NeuralNetwork.CoreBridgeLOF
+import NeuralNetwork.CoreBri dgeLOF
 import NeuralNetwork.DetailedBalanceBM
 import NeuralNetwork.Ergodicity
 import NeuralNetwork.toCanonicalEnsemble

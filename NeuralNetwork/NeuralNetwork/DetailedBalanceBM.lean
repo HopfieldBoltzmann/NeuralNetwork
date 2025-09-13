@@ -1,16 +1,20 @@
 import NeuralNetwork.BoltzmannMachine
+import NeuralNetwork.toCanonicalEnsemble
+import Mathematics.Probability.DetailedBalanceGen
+import Mathlib
 
 set_option linter.unusedSectionVars false
 set_option linter.unusedSimpArgs false
 set_option linter.style.longLine false
+set_option linter.style.openClassical false
 
 -- We provide a finite canonical ensemble instance for the Hopfield Boltzmann construction.
 instance
   {U σ : Type} [Fintype U] [DecidableEq U]
   (NN : NeuralNetwork ℝ U σ) [Fintype NN.State] [Nonempty NN.State]
   [TwoStateNeuralNetwork NN] [TwoState.TwoStateExclusive NN]
-  (spec : TwoState.EnergySpec' (NN:=NN)) (p : Params NN) :
-  CanonicalEnsemble.IsFinite (HopfieldBoltzmann.CEparams (NN:=NN) (spec:=spec) p) := by
+  (spec : TwoState.EnergySpec' (NN := NN)) (p : Params NN) :
+  CanonicalEnsemble.IsFinite (HopfieldBoltzmann.CEparams (NN := NN) (spec:=spec) p) := by
   have _ : IsHamiltonian (U:=U) (σ:=σ) NN := IsHamiltonian_of_EnergySpec' spec
   dsimp [HopfieldBoltzmann.CEparams]
   infer_instance
@@ -23,11 +27,11 @@ open TwoState HopfieldBoltzmann
 variable {U σ : Type} [Fintype U] [DecidableEq U] [Nonempty U]
 variable (NN : NeuralNetwork ℝ U σ) [Fintype NN.State] [Nonempty NN.State]
 variable [TwoStateNeuralNetwork NN] [TwoStateExclusive NN]
-variable (spec : TwoState.EnergySpec' (NN:=NN))
+variable (spec : TwoState.EnergySpec' (NN := NN))
 variable (p : Params NN) (T : Temperature)
 
-local notation "P" => P (NN:=NN) (spec:=spec) p T
-local notation "K" => Kbm (NN:=NN) p T
+local notation "P" => P (NN := NN) (spec:=spec) p T
+local notation "K" => Kbm (NN := NN) p T
 
 /-- States differ away from `u` (∃ other coordinate with different activation). -/
 def DiffAway (u : U) (s s' : NN.State) : Prop :=
@@ -36,50 +40,50 @@ def DiffAway (u : U) (s s' : NN.State) : Prop :=
 /-- If the states differ away from the update site, both transition probabilities vanish. -/
 lemma Kbm_zero_of_diffAway
     {u : U} {s s' : NN.State}
-    (h : DiffAway (NN:=NN) u s s') :
+    (h : DiffAway (NN := NN) u s s') :
     K (u:=u) s s' = 0 ∧ K (u:=u) s' s = 0 := by
   rcases h with ⟨v, hv_ne, hv_diff⟩
-  have h_ne_pos  : s' ≠ updPos (NN:=NN) s u := by
+  have h_ne_pos  : s' ≠ updPos (NN := NN) s u := by
     intro h_eq
     have hc   := congrArg (fun st : NN.State => st.act v) h_eq
-    have hupd : (updPos (NN:=NN) s u).act v = s.act v := by
-      simp [updPos_act_noteq (NN:=NN) s u v hv_ne]
+    have hupd : (updPos (NN := NN) s u).act v = s.act v := by
+      simp [updPos_act_noteq (NN := NN) s u v hv_ne]
     have : s'.act v = s.act v := by simpa [hupd] using hc
     exact hv_diff (id (Eq.symm this))
-  have h_ne_neg  : s' ≠ updNeg (NN:=NN) s u := by
+  have h_ne_neg  : s' ≠ updNeg (NN := NN) s u := by
     intro h_eq
     have hc   := congrArg (fun st : NN.State => st.act v) h_eq
-    have hupd : (updNeg (NN:=NN) s u).act v = s.act v := by
-      simp [updNeg_act_noteq (NN:=NN) s u v hv_ne]
+    have hupd : (updNeg (NN := NN) s u).act v = s.act v := by
+      simp [updNeg_act_noteq (NN := NN) s u v hv_ne]
     have : s'.act v = s.act v := by simpa [hupd] using hc
     exact hv_diff (id (Eq.symm this))
-  have h_forward : Kbm (NN:=NN) p T u s s' = 0 :=
-    Kbm_apply_other (NN:=NN) (p:=p) (T:=T) u s  s' h_ne_pos h_ne_neg
-  have h_ne_pos' : s ≠ updPos (NN:=NN) s' u := by
+  have h_forward : Kbm (NN := NN) p T u s s' = 0 :=
+    Kbm_apply_other (NN := NN) (p:=p) (T:=T) u s  s' h_ne_pos h_ne_neg
+  have h_ne_pos' : s ≠ updPos (NN := NN) s' u := by
     intro h_eq
     have hc   := congrArg (fun st : NN.State => st.act v) h_eq
-    have hupd : (updPos (NN:=NN) s' u).act v = s'.act v := by
-      simp [updPos_act_noteq (NN:=NN) s' u v hv_ne]
+    have hupd : (updPos (NN := NN) s' u).act v = s'.act v := by
+      simp [updPos_act_noteq (NN := NN) s' u v hv_ne]
     have : s.act v = s'.act v := by simpa [hupd] using hc
     exact hv_diff this
-  have h_ne_neg' : s ≠ updNeg (NN:=NN) s' u := by
+  have h_ne_neg' : s ≠ updNeg (NN := NN) s' u := by
     intro h_eq
     have hc   := congrArg (fun st : NN.State => st.act v) h_eq
-    have hupd : (updNeg (NN:=NN) s' u).act v = s'.act v := by
-      simp [updNeg_act_noteq (NN:=NN) s' u v hv_ne]
+    have hupd : (updNeg (NN := NN) s' u).act v = s'.act v := by
+      simp [updNeg_act_noteq (NN := NN) s' u v hv_ne]
     have : s.act v = s'.act v := by simpa [hupd] using hc
     exact hv_diff this
-  have h_backward : Kbm (NN:=NN) p T u s' s = 0 :=
-    Kbm_apply_other (NN:=NN) (p:=p) (T:=T) u s' s h_ne_pos' h_ne_neg'
+  have h_backward : Kbm (NN := NN) p T u s' s = 0 :=
+    Kbm_apply_other (NN := NN) (p:=p) (T:=T) u s' s h_ne_pos' h_ne_neg'
   exact ⟨h_forward, h_backward⟩
 
 /-- Detailed balance holds trivially in the “diff-away” case (both transition probabilities
 are 0). -/
 lemma detailed_balance_diffAway
   {u : U} {s s' : NN.State}
-  (h : DiffAway (NN:=NN) u s s') :
+  (h : DiffAway (NN := NN) u s s') :
   P s * K (u:=u) s s' = P s' * K (u:=u) s' s := by
-  rcases Kbm_zero_of_diffAway (NN:=NN) (p:=p) (T:=T) h with ⟨h1, h2⟩
+  rcases Kbm_zero_of_diffAway (NN := NN) (p:=p) (T:=T) h with ⟨h1, h2⟩
   simp [h1, h2]
 
 /-- Classification of the single-site difference at `u` (exclusive two-state case). -/
@@ -87,10 +91,10 @@ lemma single_site_cases
     {u : U} {s s' : NN.State}
     (h_off : ∀ v ≠ u, s.act v = s'.act v)
     (h_ne : s ≠ s') :
-    (s.act u = TwoStateNeuralNetwork.σ_pos (NN:=NN) ∧
-       s'.act u = TwoStateNeuralNetwork.σ_neg (NN:=NN))
-  ∨ (s.act u = TwoStateNeuralNetwork.σ_neg (NN:=NN) ∧
-       s'.act u = TwoStateNeuralNetwork.σ_pos (NN:=NN)) := by
+    (s.act u = TwoStateNeuralNetwork.σ_pos (NN := NN) ∧
+       s'.act u = TwoStateNeuralNetwork.σ_neg (NN := NN))
+  ∨ (s.act u = TwoStateNeuralNetwork.σ_neg (NN := NN) ∧
+       s'.act u = TwoStateNeuralNetwork.σ_pos (NN := NN)) := by
   have hx : s.act u ≠ s'.act u := by
     intro hcontra
     apply h_ne
@@ -98,11 +102,11 @@ lemma single_site_cases
     by_cases hv : v = u
     · simp [hv, hcontra]
     · simpa [hv] using h_off v hv
-  rcases (TwoStateExclusive.pact_iff (NN:=NN) (a:=s.act u)).1 (s.hp u) with hs_pos | hs_neg
-  · rcases (TwoStateExclusive.pact_iff (NN:=NN) (a:=s'.act u)).1 (s'.hp u) with hs'_pos | hs'_neg
+  rcases (TwoStateExclusive.pact_iff (NN := NN) (a:=s.act u)).1 (s.hp u) with hs_pos | hs_neg
+  · rcases (TwoStateExclusive.pact_iff (NN := NN) (a:=s'.act u)).1 (s'.hp u) with hs'_pos | hs'_neg
     · exact False.elim (hx (hs_pos.trans hs'_pos.symm))
     · exact Or.inl ⟨hs_pos, hs'_neg⟩
-  · rcases (TwoStateExclusive.pact_iff (NN:=NN) (a:=s'.act u)).1 (s'.hp u) with hs'_pos | hs'_neg
+  · rcases (TwoStateExclusive.pact_iff (NN := NN) (a:=s'.act u)).1 (s'.hp u) with hs'_pos | hs'_neg
     · exact Or.inr ⟨hs_neg, hs'_pos⟩
     · exact False.elim (hx (hs_neg.trans hs'_neg.symm))
 
@@ -173,41 +177,41 @@ probPos f p T sNeg  u = logisticProb (-Δ * β)
 lemma TwoState.EnergySpec'.probPos_flip_pair
     {U σ} [Fintype U] [DecidableEq U] [Nonempty U]
     {NN : NeuralNetwork ℝ U σ} [TwoStateNeuralNetwork NN]
-    (spec : TwoState.EnergySpec' (NN:=NN))
+    (spec : TwoState.EnergySpec' (NN := NN))
     (p : Params NN) (T : Temperature) (s : NN.State) (u : U) :
     let f    := (RingHom.id ℝ)
-    let sPos := updPos (NN:=NN) s u
-    let sNeg := updNeg (NN:=NN) s u
+    let sPos := updPos (NN := NN) s u
+    let sNeg := updNeg (NN := NN) s u
     let Δ    := f (spec.E p sPos - spec.E p sNeg)
-    probPos (NN:=NN) f p T s    u = logisticProb (-Δ * (T.β : ℝ)) ∧
-    probPos (NN:=NN) f p T sNeg u = logisticProb (-Δ * (T.β : ℝ)) := by
+    probPos (NN := NN) f p T s    u = logisticProb (-Δ * (T.β : ℝ)) ∧
+    probPos (NN := NN) f p T sNeg u = logisticProb (-Δ * (T.β : ℝ)) := by
   intro f sPos sNeg Δ
-  let ES : TwoState.EnergySpec (NN:=NN) :=
+  let ES : TwoState.EnergySpec (NN := NN) :=
     { E                 := spec.E
       , localField       := spec.localField
       , localField_spec  := spec.localField_spec
       , flip_energy_relation := by
           intro f' p' s' u'
           simpa using spec.flip_energy_relation f' p' s' u' }
-  have hPos : updPos (NN:=NN) s u = sPos := rfl
-  have hNeg : updNeg (NN:=NN) s u = sNeg := rfl
-  have h₁ : probPos (NN:=NN) f p T s u =
+  have hPos : updPos (NN := NN) s u = sPos := rfl
+  have hNeg : updNeg (NN := NN) s u = sNeg := rfl
+  have h₁ : probPos (NN := NN) f p T s u =
       logisticProb (-Δ * (T.β : ℝ)) := by
     have h := ES.probPos_eq_of_energy f p T s u
     dsimp [ES] at h
     simpa [hPos, hNeg, Δ, sub_eq_add_neg,
            mul_comm, mul_left_comm, mul_assoc] using h
-  have hPos' : updPos (NN:=NN) sNeg u = sPos := by
+  have hPos' : updPos (NN := NN) sNeg u = sPos := by
     ext v
     by_cases hv : v = u
     · subst hv; simp [sPos, sNeg, updPos, updNeg]
     · simp [sPos, sNeg, updPos, updNeg, hv]
-  have hNeg' : updNeg (NN:=NN) sNeg u = sNeg := by
+  have hNeg' : updNeg (NN := NN) sNeg u = sNeg := by
     ext v
     by_cases hv : v = u
     · subst hv; simp [sNeg, updNeg]
     · simp [sNeg, updNeg, hv]
-  have h₂ : probPos (NN:=NN) f p T sNeg u =
+  have h₂ : probPos (NN := NN) f p T sNeg u =
       logisticProb (-Δ * (T.β : ℝ)) := by
     have h := ES.probPos_eq_of_energy f p T sNeg u
     dsimp [ES] at h
@@ -221,53 +225,53 @@ Here `ΔE = E s' - E s` with `s' = updPos s u`and `s = updNeg s' u` (i.e. `s` ca
 lemma flip_prob_neg_pos
     {U σ} [Fintype U] [DecidableEq U] [Nonempty U]
     {NN : NeuralNetwork ℝ U σ} [TwoStateNeuralNetwork NN]
-    (spec : TwoState.EnergySpec' (NN:=NN))
+    (spec : TwoState.EnergySpec' (NN := NN))
     (p : Params NN) (T : Temperature)
     {s s' : NN.State} {u : U}
     (h_off : ∀ v ≠ u, s.act v = s'.act v)
-    (h_neg : s.act u = TwoStateNeuralNetwork.σ_neg (NN:=NN))
-    (h_pos : s'.act u = TwoStateNeuralNetwork.σ_pos (NN:=NN)) :
+    (h_neg : s.act u = TwoStateNeuralNetwork.σ_neg (NN := NN))
+    (h_pos : s'.act u = TwoStateNeuralNetwork.σ_pos (NN := NN)) :
     let ΔE := spec.E p s' - spec.E p s
-    probPos (NN:=NN) (RingHom.id ℝ) p T s u = logisticProb (-(T.β : ℝ) * ΔE) ∧
-    probPos (NN:=NN) (RingHom.id ℝ) p T s' u = logisticProb (-(T.β : ℝ) * ΔE) := by
+    probPos (NN := NN) (RingHom.id ℝ) p T s u = logisticProb (-(T.β : ℝ) * ΔE) ∧
+    probPos (NN := NN) (RingHom.id ℝ) p T s' u = logisticProb (-(T.β : ℝ) * ΔE) := by
   intro ΔE
-  have h_sPos : updPos (NN:=NN) s u = s' := by
+  have h_sPos : updPos (NN := NN) s u = s' := by
     ext v; by_cases hv : v = u
     · subst hv; simp [updPos_act_at_u, h_pos]
-    · simp [updPos_act_noteq (NN:=NN) s u v hv, h_off v hv]
-  have h_sNeg : updNeg (NN:=NN) s u = s := by
+    · simp [updPos_act_noteq (NN := NN) s u v hv, h_off v hv]
+  have h_sNeg : updNeg (NN := NN) s u = s := by
     ext v; by_cases hv : v = u
     · subst hv; simp [updNeg_act_at_u, h_neg]
-    · simp [updNeg_act_noteq (NN:=NN) s u v hv]
+    · simp [updNeg_act_noteq (NN := NN) s u v hv]
   obtain ⟨h_prob_s, _⟩ :=
-    (TwoState.EnergySpec'.probPos_flip_pair (NN:=NN) spec p T s u)
+    (TwoState.EnergySpec'.probPos_flip_pair (NN := NN) spec p T s u)
   have hΔ₁ :
       (RingHom.id ℝ)
-          (spec.E p (updPos (NN:=NN) s u) - spec.E p (updNeg (NN:=NN) s u))
+          (spec.E p (updPos (NN := NN) s u) - spec.E p (updNeg (NN := NN) s u))
         = ΔE := by
     simp [ΔE, h_sPos, h_sNeg]
   have h1 :
-      probPos (NN:=NN) (RingHom.id ℝ) p T s u
+      probPos (NN := NN) (RingHom.id ℝ) p T s u
         = logisticProb (-(T.β : ℝ) * ΔE) := by
     rw [h_prob_s, hΔ₁]
     ring_nf
-  have h_s'Pos : updPos (NN:=NN) s' u = s' := by
+  have h_s'Pos : updPos (NN := NN) s' u = s' := by
     ext v; by_cases hv : v = u
     · subst hv; simp [updPos_act_at_u, h_pos]
-    · simp [updPos_act_noteq (NN:=NN) s' u v hv]
-  have h_s'Neg : updNeg (NN:=NN) s' u = s := by
+    · simp [updPos_act_noteq (NN := NN) s' u v hv]
+  have h_s'Neg : updNeg (NN := NN) s' u = s := by
     ext v; by_cases hv : v = u
     · subst hv; simp [updNeg_act_at_u, h_neg]
-    · simp [updNeg_act_noteq (NN:=NN) s' u v hv, (h_off v hv).symm]
+    · simp [updNeg_act_noteq (NN := NN) s' u v hv, (h_off v hv).symm]
   obtain ⟨_, h_prob_s'⟩ :=
-    (TwoState.EnergySpec'.probPos_flip_pair (NN:=NN) spec p T s' u)
+    (TwoState.EnergySpec'.probPos_flip_pair (NN := NN) spec p T s' u)
   have hΔ₂ :
       (RingHom.id ℝ)
-          (spec.E p (updPos (NN:=NN) s' u) - spec.E p (updNeg (NN:=NN) s' u))
+          (spec.E p (updPos (NN := NN) s' u) - spec.E p (updNeg (NN := NN) s' u))
         = ΔE := by
     simp [ΔE, h_s'Pos, h_s'Neg]
   have h2 :
-      probPos (NN:=NN) (RingHom.id ℝ) p T s' u
+      probPos (NN := NN) (RingHom.id ℝ) p T s' u
         = logisticProb (-(T.β : ℝ) * ΔE) := by
     subst h_s'Neg
     simp_all only [RingHom.id_apply, neg_sub, ne_eq, updNeg_act_at_u, neg_mul, ΔE]
@@ -279,11 +283,11 @@ lemma flip_prob_neg_pos
     then detailed balance holds: `Pfun s * Kfun s s' = Pfun s' * Kfun s' s`. -/
 lemma detailed_balance_from_opposite_ratios
     {α : Type}
-    {Pfun : α → ℝ}            -- one-argument  (probability)  function
-    {Kfun : α → α → ℝ}        -- two-argument (kernel)       function
+    {Pfun : α → ℝ} -- one-argument  (probability)  function
+    {Kfun : α → α → ℝ} -- two-argument (kernel)       function
     {s s' : α} {β ΔE : ℝ}
-    (hP  :  Pfun s' / Pfun s        = Real.exp (-β * ΔE))
-    (hK  :  Kfun s  s' / Kfun s' s  = Real.exp (-β * ΔE))
+    (hP : Pfun s' / Pfun s = Real.exp (-β * ΔE))
+    (hK : Kfun s s' / Kfun s' s = Real.exp (-β * ΔE))
     (hPpos : 0 < Pfun s) (hKpos : 0 < Kfun s' s) :
     Pfun s * Kfun s s' = Pfun s' * Kfun s' s := by
   have hPne : Pfun s ≠ 0 := (ne_of_gt hPpos)
@@ -310,30 +314,30 @@ lemma detailed_balance_from_opposite_ratios
 lemma detailed_balance_neg_pos
     {u : U} {s s' : NN.State}
     (h_off : ∀ v ≠ u, s.act v = s'.act v)
-    (h_neg : s.act u = TwoStateNeuralNetwork.σ_neg (NN:=NN))
-    (h_pos : s'.act u = TwoStateNeuralNetwork.σ_pos (NN:=NN)) :
+    (h_neg : s.act u = TwoStateNeuralNetwork.σ_neg (NN := NN))
+    (h_pos : s'.act u = TwoStateNeuralNetwork.σ_pos (NN := NN)) :
     P s * K (u:=u) s s' = P s' * K (u:=u) s' s := by
-  have h_updPos : s' = updPos (NN:=NN) s u := by
+  have h_updPos : s' = updPos (NN := NN) s u := by
     ext v; by_cases hv : v = u
     · subst hv; simp [updPos_act_at_u, h_pos]
-    · simp [updPos_act_noteq (NN:=NN) s u v hv, h_off v hv]
-  have h_updNeg : s = updNeg (NN:=NN) s' u := by
+    · simp [updPos_act_noteq (NN := NN) s u v hv, h_off v hv]
+  have h_updNeg : s = updNeg (NN := NN) s' u := by
     ext v; by_cases hv : v = u
     · subst hv; simp [updNeg_act_at_u, h_neg]
-    · have := h_off v hv; simp [updNeg_act_noteq (NN:=NN) s' u v hv, this.symm]
+    · have := h_off v hv; simp [updNeg_act_noteq (NN := NN) s' u v hv, this.symm]
   have hK_fwd :
       K (u:=u) s s' = probPos (RingHom.id ℝ) p T s u := by
     subst h_updPos
     simpa [Kbm] using
-      (Kbm_apply_updPos (NN:=NN) (p:=p) (T:=T) u s)
+      (Kbm_apply_updPos (NN := NN) (p:=p) (T:=T) u s)
   have hK_bwd :
       K (u:=u) s' s = 1 - probPos (RingHom.id ℝ) p T s' u := by
     subst h_updNeg
     simpa [Kbm] using
-      (Kbm_apply_updNeg (NN:=NN) (p:=p) (T:=T) u s')
+      (Kbm_apply_updNeg (NN := NN) (p:=p) (T:=T) u s')
   let ΔE := spec.E p s' - spec.E p s
   obtain ⟨hProb_fwd, hProb_bwd⟩ :=
-    flip_prob_neg_pos (NN:=NN) (spec:=spec) p T
+    flip_prob_neg_pos (NN := NN) (spec:=spec) p T
       (s:=s) (s':=s') (u:=u) h_off h_neg h_pos
   have hKf :
       K (u:=u) s s' = logisticProb (-(T.β : ℝ) * ΔE) := by
@@ -354,7 +358,7 @@ lemma detailed_balance_neg_pos
       simp [hx]
     simp [hK_bwd, this]
   have hPratio :=
-    boltzmann_ratio (NN:=NN) (spec:=spec) (p:=p) (T:=T) s s'
+    boltzmann_ratio (NN := NN) (spec:=spec) (p:=p) (T:=T) s s'
   have hPratio' :
       P s' / P s = Real.exp (-(T.β : ℝ) * ΔE) := by
     simpa [ΔE, sub_eq_add_neg, add_comm, add_left_comm, add_assoc]
@@ -368,8 +372,8 @@ lemma detailed_balance_neg_pos
     simp [hKb, logisticProb_pos']
   have hPpos : 0 < P s := by
     have _ : IsHamiltonian (U:=U) (σ:=σ) NN :=
-      IsHamiltonian_of_EnergySpec' (NN:=NN) (spec:=spec)
-    set 𝓒 := CEparams (NN:=NN) (spec:=spec) p
+      IsHamiltonian_of_EnergySpec' (NN := NN) (spec:=spec)
+    set 𝓒 := CEparams (NN := NN) (spec:=spec) p
     have instFin : 𝓒.IsFinite := by
       dsimp [𝓒, CEparams]; infer_instance
     unfold HopfieldBoltzmann.P
@@ -390,11 +394,11 @@ lemma detailed_balance_neg_pos
 lemma detailed_balance_pos_neg
     {u : U} {s s' : NN.State}
     (h_off : ∀ v ≠ u, s.act v = s'.act v)
-    (h_pos : s.act u = TwoStateNeuralNetwork.σ_pos (NN:=NN))
-    (h_neg : s'.act u = TwoStateNeuralNetwork.σ_neg (NN:=NN)) :
+    (h_pos : s.act u = TwoStateNeuralNetwork.σ_pos (NN := NN))
+    (h_neg : s'.act u = TwoStateNeuralNetwork.σ_neg (NN := NN)) :
     P s * K (u:=u) s s' = P s' * K (u:=u) s' s := by
   have hswap :=
-    detailed_balance_neg_pos (NN:=NN) (spec:=spec) (p:=p) (T:=T)
+    detailed_balance_neg_pos (NN := NN) (spec:=spec) (p:=p) (T:=T)
       (u:=u) (s:=s') (s':=s)
       (h_off:=by
         intro v hv
@@ -412,8 +416,8 @@ theorem detailed_balance
     (u : U) (s s' : NN.State) :
     P s * K (u:=u) s s'
       = P s' * K (u:=u) s' s := by
-  by_cases hDiff : DiffAway (NN:=NN) u s s'
-  · exact detailed_balance_diffAway (NN:=NN) (spec:=spec) (p:=p) (T:=T) hDiff
+  by_cases hDiff : DiffAway (NN := NN) u s s'
+  · exact detailed_balance_diffAway (NN := NN) (spec:=spec) (p:=p) (T:=T) hDiff
   have h_off : ∀ v ≠ u, s.act v = s'.act v := by
     intro v hv
     by_contra H
@@ -421,13 +425,13 @@ theorem detailed_balance
   by_cases hEq : s = s'
   · subst hEq; simp
   have hClass :=
-    single_site_cases (NN:=NN) (u:=u) (s:=s) (s':=s') h_off hEq
+    single_site_cases (NN := NN) (u:=u) (s:=s) (s':=s') h_off hEq
   rcases hClass with hCase | hCase
   · rcases hCase with ⟨hpos, hneg⟩
-    exact detailed_balance_pos_neg (NN:=NN) (spec:=spec) (p:=p) (T:=T)
+    exact detailed_balance_pos_neg (NN := NN) (spec:=spec) (p:=p) (T:=T)
       (u:=u) (s:=s) (s':=s') h_off hpos hneg
   · rcases hCase with ⟨hneg, hpos⟩
-    exact detailed_balance_neg_pos (NN:=NN) (spec:=spec) (p:=p) (T:=T)
+    exact detailed_balance_neg_pos (NN := NN) (spec:=spec) (p:=p) (T:=T)
       (u:=u) (s:=s) (s':=s') h_off hneg hpos
 
 end DetailedBalance
@@ -441,7 +445,7 @@ open TwoState Temperature HopfieldBoltzmann ProbabilityTheory
 variable {U σ : Type} [Fintype U] [DecidableEq U] [Nonempty U]
 variable (NN : NeuralNetwork ℝ U σ) [Fintype NN.State] [Nonempty NN.State]
 variable [TwoStateNeuralNetwork NN] [TwoStateExclusive NN]
-variable (spec : TwoState.EnergySpec' (NN:=NN))
+variable (spec : TwoState.EnergySpec' (NN := NN))
 variable (p : Params NN) (T : Temperature)
 
 /-- Lift a family of PMFs to a Markov kernel on a finite (hence countable) state space. -/
@@ -456,22 +460,21 @@ noncomputable def singleSiteKernel
     (NN : NeuralNetwork ℝ U σ) [Fintype NN.State] [DecidableEq U] [DecidableEq NN.State]
     [MeasurableSpace NN.State] [MeasurableSingletonClass NN.State]
     [TwoStateNeuralNetwork NN]
-    (_spec : TwoState.EnergySpec' (NN:=NN)) (p : Params NN) (T : Temperature) (u : U) :
+    (_spec : TwoState.EnergySpec' (NN := NN)) (p : Params NN) (T : Temperature) (u : U) :
     Kernel NN.State NN.State :=
-  pmfToKernel (fun s => TwoState.gibbsUpdate (NN:=NN) (RingHom.id ℝ) p T s u)
+  pmfToKernel (fun s => TwoState.gibbsUpdate (NN := NN) (RingHom.id ℝ) p T s u)
 
 /-- Random–scan Gibbs kernel as uniform mixture over sites. -/
 noncomputable def randomScanKernel
     (NN : NeuralNetwork ℝ U σ) [Fintype U] [DecidableEq U] [Nonempty U]
     [Fintype NN.State] [DecidableEq NN.State] [MeasurableSpace NN.State] [MeasurableSingletonClass NN.State]
     [TwoStateNeuralNetwork NN] [TwoStateExclusive NN]
-    (_spec : TwoState.EnergySpec' (NN:=NN)) (p : Params NN) (T : Temperature) :
+    (_spec : TwoState.EnergySpec' (NN := NN)) (p : Params NN) (T : Temperature) :
     Kernel NN.State NN.State :=
-  let sitePMF : PMF U := PMF.uniformOfFintype _
+  let sitePMF : PMF U := PMF.uniformOfFinset (Finset.univ) (by simp)
   pmfToKernel (fun s =>
     sitePMF.bind (fun u =>
-      TwoState.gibbsUpdate (NN:=NN) (RingHom.id ℝ) p T s u))
-
+      TwoState.gibbsUpdate (NN := NN) (RingHom.id ℝ) p T s u))
 open MeasureTheory
 
 /-- Uniform random-scan kernel evaluation:
@@ -479,25 +482,25 @@ the kernel probability of a measurable set `B` equals the arithmetic
 average of the single-site kernel probabilities. -/
 lemma randomScanKernel_eval_uniform
     [DecidableEq NN.State]
-    (spec : TwoState.EnergySpec' (NN:=NN))
+    (spec : TwoState.EnergySpec' (NN := NN))
     (p : Params NN) (T : Temperature)
     (x : NN.State) (B : Set NN.State) (_ : MeasurableSet B) :
-    (randomScanKernel (NN:=NN) spec p T) x B
+    (randomScanKernel (NN := NN) spec p T) x B
       =
-    (∑ u : U, (singleSiteKernel (NN:=NN) spec p T u) x B)
+    (∑ u : U, (singleSiteKernel (NN := NN) spec p T u) x B)
 / (Fintype.card U : ℝ≥0∞) := by
   unfold randomScanKernel singleSiteKernel pmfToKernel
   simp [Kernel.ofFunOfCountable]
-  let sitePMF : PMF U := PMF.uniformOfFintype U
+  let sitePMF : PMF U := PMF.uniformOfFinset (Finset.univ) (by classical exact Finset.univ_nonempty)
   let g : U → PMF NN.State :=
-    fun u => TwoState.gibbsUpdate (NN:=NN) (RingHom.id ℝ) p T x u
+    fun u => TwoState.gibbsUpdate (NN := NN) (RingHom.id ℝ) p T x u
   have hBind :
       (sitePMF.bind g).toMeasure B
         = ∑ u : U, sitePMF u * (g u).toMeasure B := by
-    have := PMF.toMeasure_bind_fintype (p:=sitePMF) (f:=g) (B:=B)
-    simp_all only [PMF.toMeasure_apply_fintype, PMF.uniformOfFintype_apply, forall_const, sitePMF, g]
+    simpa using (PMF.toMeasure_bind_fintype (p:=sitePMF) (f:=g) (B:=B))
   have hμ : ∀ u : U, sitePMF u = (Fintype.card U : ℝ≥0∞)⁻¹ := by
-    intro u; simp [sitePMF, PMF.uniformOfFintype_apply]
+    intro u; classical
+    simp [sitePMF, PMF.uniformOfFinset_apply]
   have hConst :
       (sitePMF.bind g).toMeasure B
         = (Fintype.card U : ℝ≥0∞)⁻¹ * ∑ u : U, (g u).toMeasure B := by
@@ -509,19 +512,19 @@ lemma lintegral_randomScanKernel_as_sum_div
     (NN : NeuralNetwork ℝ U σ)
     [Fintype NN.State] [DecidableEq NN.State] [Nonempty NN.State]
     [TwoStateNeuralNetwork NN] [TwoStateExclusive NN]
-    (spec : TwoState.EnergySpec' (NN:=NN))
+    (spec : TwoState.EnergySpec' (NN := NN))
     (p : Params NN) (T : Temperature)
     (π : Measure (NN.State))
     (A B : Set NN.State) (hA : MeasurableSet A) (hB : MeasurableSet B) :
-    ∫⁻ x in A, (randomScanKernel (NN:=NN) spec p T) x B ∂π
+    ∫⁻ x in A, (randomScanKernel (NN := NN) spec p T) x B ∂π
       =
     (∑ u : U,
-        ∫⁻ x in A, (singleSiteKernel (NN:=NN) spec p T u) x B ∂π)
+        ∫⁻ x in A, (singleSiteKernel (NN := NN) spec p T u) x B ∂π)
 / (Fintype.card U : ℝ≥0∞) := by
   letI : MeasurableSpace NN.State := ⊤
   letI : MeasurableSingletonClass NN.State := ⟨fun _ => trivial⟩
-  set κ := randomScanKernel (NN:=NN) spec p T
-  set κu := fun u : U => singleSiteKernel (NN:=NN) spec p T u
+  set κ := randomScanKernel (NN := NN) spec p T
+  set κu := fun u : U => singleSiteKernel (NN := NN) spec p T u
   set c : ℝ≥0∞ := (Fintype.card U : ℝ≥0∞)⁻¹ with hc
   have h_div : (↑(Fintype.card U) : ℝ≥0∞) ≠ 0 := by
     exact_mod_cast (Fintype.card_ne_zero : Fintype.card U ≠ 0)
@@ -529,7 +532,7 @@ lemma lintegral_randomScanKernel_as_sum_div
       ∀ x, κ x B = c * ∑ u : U, (κu u) x B := by
     intro x
     have hx :=
-      randomScanKernel_eval_uniform (NN:=NN) (spec:=spec) p T x B hB
+      randomScanKernel_eval_uniform (NN := NN) (spec:=spec) p T x B hB
     simp [κ, κu, c, ENNReal.div_eq_inv_mul, hx]
   have hLHS :
       ∫⁻ x in A, κ x B ∂π
@@ -566,29 +569,29 @@ lemma randomScanKernel_reversible_of_sites
     (NN : NeuralNetwork ℝ U σ) [Fintype U] [DecidableEq U] [Nonempty U]
     [Fintype NN.State] [DecidableEq NN.State] [Nonempty NN.State]
     [TwoStateNeuralNetwork NN] [TwoStateExclusive NN]
-    (spec : TwoState.EnergySpec' (NN:=NN))
+    (spec : TwoState.EnergySpec' (NN := NN))
     (p : Params NN) (T : Temperature)
     (π : Measure (NN.State))
     (hSite :
       ∀ u, ProbabilityTheory.Kernel.IsReversible
-              (singleSiteKernel (NN:=NN) spec p T u) π) :
+              (singleSiteKernel (NN := NN) spec p T u) π) :
     ProbabilityTheory.Kernel.IsReversible
-      (randomScanKernel (NN:=NN) spec p T) π := by
+      (randomScanKernel (NN := NN) spec p T) π := by
   letI : MeasurableSpace NN.State := ⊤
   letI : MeasurableSingletonClass NN.State := ⟨fun _ => trivial⟩
   intro A B hA hB
   have hSum :
       (∑ u : U,
-          ∫⁻ x in A, (singleSiteKernel (NN:=NN) spec p T u) x B ∂π)
+          ∫⁻ x in A, (singleSiteKernel (NN := NN) spec p T u) x B ∂π)
         =
       (∑ u : U,
-          ∫⁻ x in B, (singleSiteKernel (NN:=NN) spec p T u) x A ∂π) := by
+          ∫⁻ x in B, (singleSiteKernel (NN := NN) spec p T u) x A ∂π) := by
     refine Finset.sum_congr rfl ?_
     intro u _; exact hSite u hA hA
   have hAexpr :=
-    lintegral_randomScanKernel_as_sum_div (NN:=NN) (spec:=spec) p T π A B hA hB
+    lintegral_randomScanKernel_as_sum_div (NN := NN) (spec:=spec) p T π A B hA hB
   have hBexpr :=
-    lintegral_randomScanKernel_as_sum_div (NN:=NN) (spec:=spec) p T π B A hB hA
+    lintegral_randomScanKernel_as_sum_div (NN := NN) (spec:=spec) p T π B A hB hA
   simp [hAexpr, hBexpr, hSum]
 
 -- ## Single–site pointwise detailed balance (finite two–state Hopfield)
@@ -596,120 +599,116 @@ lemma randomScanKernel_reversible_of_sites
 section SingleSitePointwise
 
 open scoped ENNReal
-open MeasureTheory TwoState HopfieldBoltzmann ProbabilityTheory
+open MeasureTheory TwoState HopfieldBoltzmann ProbabilityTheory Classical
 
 variable {U σ : Type} [Fintype U] [DecidableEq U] [Nonempty U]
 variable (NN : NeuralNetwork ℝ U σ)
 variable [Fintype NN.State] [DecidableEq NN.State] [Nonempty NN.State]
 variable [TwoStateNeuralNetwork NN] [TwoStateExclusive NN]
-variable (spec : TwoState.EnergySpec' (NN:=NN))
+variable (spec : TwoState.EnergySpec' (NN := NN))
 variable (p : Params NN) (T : Temperature)
 
 /-- Canonical Boltzmann measure from `CanonicalEnsemble.Basic` -/
 private noncomputable abbrev πBoltz : Measure NN.State :=
-  (HopfieldBoltzmann.CEparams (NN:=NN) (spec:=spec) p).μProd T
+  (HopfieldBoltzmann.CEparams (NN := NN) (spec:=spec) p).μProd T
 
 /-- Evaluation of the single–site Gibbs kernel on a singleton. -/
 lemma singleSiteKernel_singleton_eval
     (u : U) (s t : NN.State) :
-    (singleSiteKernel (NN:=NN) spec p T u) s {t}
-      = ENNReal.ofReal (HopfieldBoltzmann.Kbm (NN:=NN) p T u s t) := by
+    (singleSiteKernel (NN := NN) spec p T u) s {t}
+      = ENNReal.ofReal (HopfieldBoltzmann.Kbm (NN := NN) p T u s t) := by
   letI : MeasurableSpace NN.State := ⊤
   letI : MeasurableSingletonClass NN.State := ⟨fun _ => trivial⟩
   have hPMF :
-      (singleSiteKernel (NN:=NN) spec p T u) s {t}
+      (singleSiteKernel (NN := NN) spec p T u) s {t}
         =
-      (TwoState.gibbsUpdate (NN:=NN) (RingHom.id ℝ) p T s u) t := by
+      (TwoState.gibbsUpdate (NN := NN) (RingHom.id ℝ) p T s u) t := by
     unfold singleSiteKernel pmfToKernel
     simp_rw [Kernel.ofFunOfCountable_apply, PMF.toMeasure_singleton]
   have hfin :
-      (TwoState.gibbsUpdate (NN:=NN) (RingHom.id ℝ) p T s u) t ≠ (⊤ : ℝ≥0∞) := by
+      (TwoState.gibbsUpdate (NN := NN) (RingHom.id ℝ) p T s u) t ≠ (⊤ : ℝ≥0∞) := by
     have hle :
-        (TwoState.gibbsUpdate (NN:=NN) (RingHom.id ℝ) p T s u) t ≤ 1 := by
+        (TwoState.gibbsUpdate (NN := NN) (RingHom.id ℝ) p T s u) t ≤ 1 := by
       simpa using
-        (TwoState.gibbsUpdate (NN:=NN) (RingHom.id ℝ) p T s u).coe_le_one t
-    have hlt : (TwoState.gibbsUpdate (NN:=NN) (RingHom.id ℝ) p T s u) t
+        (TwoState.gibbsUpdate (NN := NN) (RingHom.id ℝ) p T s u).coe_le_one t
+    have hlt : (TwoState.gibbsUpdate (NN := NN) (RingHom.id ℝ) p T s u) t
                 < (⊤ : ℝ≥0∞) :=
       lt_of_le_of_lt hle (by simp)
     exact (ne_of_lt hlt)
   calc
-    (singleSiteKernel (NN:=NN) spec p T u) s {t}
-        = (TwoState.gibbsUpdate (NN:=NN) (RingHom.id ℝ) p T s u) t := hPMF
-    _ = ENNReal.ofReal ((TwoState.gibbsUpdate (NN:=NN) (RingHom.id ℝ) p T s u) t).toReal := by
+    (singleSiteKernel (NN := NN) spec p T u) s {t}
+        = (TwoState.gibbsUpdate (NN := NN) (RingHom.id ℝ) p T s u) t := hPMF
+    _ = ENNReal.ofReal ((TwoState.gibbsUpdate (NN := NN) (RingHom.id ℝ) p T s u) t).toReal := by
           simp [ENNReal.ofReal_toReal, hfin]
-    _ = ENNReal.ofReal (HopfieldBoltzmann.Kbm (NN:=NN) p T u s t) := rfl
+    _ = ENNReal.ofReal (HopfieldBoltzmann.Kbm (NN := NN) p T u s t) := rfl
 
+open Classical in
 /-- Evaluation of the Boltzmann measure on a singleton as `ofReal` of the Boltzmann probability. -/
 lemma boltzmann_singleton_eval
     (s : NN.State) :
-    (πBoltz (NN:=NN) (spec:=spec) (p:=p) (T:=T)) {s}
+    (πBoltz (NN := NN) (spec:=spec) (p:=p) (T:=T)) {s}
       =
-    ENNReal.ofReal (HopfieldBoltzmann.P (NN:=NN) (spec:=spec) p T s) := by
+    ENNReal.ofReal (HopfieldBoltzmann.P (NN := NN) (spec:=spec) p T s) := by
   have _ : IsHamiltonian (U:=U) (σ:=σ) NN :=
-    IsHamiltonian_of_EnergySpec' (NN:=NN) (spec:=spec)
-  have : (HopfieldBoltzmann.CEparams (NN:=NN) (spec:=spec) p).μProd T {s}
-        =
-      ENNReal.ofReal
-        ((HopfieldBoltzmann.CEparams (NN:=NN) (spec:=spec) p).probability T s) := by
-    simp
-  simp [πBoltz, HopfieldBoltzmann.P, HopfieldBoltzmann.CEparams]
+    IsHamiltonian_of_EnergySpec' (NN := NN) (spec:=spec)
+  simp [πBoltz, HopfieldBoltzmann.P, HopfieldBoltzmann.CEparams, μProd_singleton_of_fintype]
 
 lemma singleSite_pointwise_detailed_balance
     (u : U) :
     ∀ s t : NN.State,
-      (πBoltz (NN:=NN) (spec:=spec) (p:=p) (T:=T)) {s}
-        * (singleSiteKernel (NN:=NN) spec p T u) s {t}
+      (πBoltz (NN := NN) (spec:=spec) (p:=p) (T:=T)) {s}
+        * (singleSiteKernel (NN := NN) spec p T u) s {t}
         =
-      (πBoltz (NN:=NN) (spec:=spec) (p:=p) (T:=T)) {t}
-        * (singleSiteKernel (NN:=NN) spec p T u) t {s} := by
+      (πBoltz (NN := NN) (spec:=spec) (p:=p) (T:=T)) {t}
+        * (singleSiteKernel (NN := NN) spec p T u) t {s} := by
   intro s t
   have hReal :=
-    detailed_balance (NN:=NN) (spec:=spec) (p:=p) (T:=T) (u:=u) s t
-  have hπs := boltzmann_singleton_eval (NN:=NN) (spec:=spec) (p:=p) (T:=T) s
-  have hπt := boltzmann_singleton_eval (NN:=NN) (spec:=spec) (p:=p) (T:=T) t
+    detailed_balance (NN := NN) (spec:=spec) (p:=p) (T:=T) (u:=u) s t
+  have hπs := boltzmann_singleton_eval (NN := NN) (spec:=spec) (p:=p) (T:=T) s
+  have hπt := boltzmann_singleton_eval (NN := NN) (spec:=spec) (p:=p) (T:=T) t
   have hκst :=
-    singleSiteKernel_singleton_eval (NN:=NN) (spec:=spec) (p:=p) (T:=T) u s t
+    singleSiteKernel_singleton_eval (NN := NN) (spec:=spec) (p:=p) (T:=T) u s t
   have hκts :=
-    singleSiteKernel_singleton_eval (NN:=NN) (spec:=spec) (p:=p) (T:=T) u t s
+    singleSiteKernel_singleton_eval (NN := NN) (spec:=spec) (p:=p) (T:=T) u t s
   have hPs_nonneg :
-      0 ≤ HopfieldBoltzmann.P (NN:=NN) (spec:=spec) p T s := by
+      0 ≤ HopfieldBoltzmann.P (NN := NN) (spec:=spec) p T s := by
     have _ : IsHamiltonian (U:=U) (σ:=σ) NN :=
-      IsHamiltonian_of_EnergySpec' (NN:=NN) (spec:=spec)
+      IsHamiltonian_of_EnergySpec' (NN := NN) (spec:=spec)
     exact probability_nonneg_finite
-      (𝓒:=HopfieldBoltzmann.CEparams (NN:=NN) (spec:=spec) p) (T:=T) (i:=s)
+      (𝓒:=HopfieldBoltzmann.CEparams (NN := NN) (spec:=spec) p) (T:=T) (i:=s)
   have hPt_nonneg :
-      0 ≤ HopfieldBoltzmann.P (NN:=NN) (spec:=spec) p T t := by
+      0 ≤ HopfieldBoltzmann.P (NN := NN) (spec:=spec) p T t := by
     have _ : IsHamiltonian (U:=U) (σ:=σ) NN :=
-      IsHamiltonian_of_EnergySpec' (NN:=NN) (spec:=spec)
+      IsHamiltonian_of_EnergySpec' (NN := NN) (spec:=spec)
     exact probability_nonneg_finite
-      (𝓒:=HopfieldBoltzmann.CEparams (NN:=NN) (spec:=spec) p) (T:=T) (i:=t)
+      (𝓒:=HopfieldBoltzmann.CEparams (NN := NN) (spec:=spec) p) (T:=T) (i:=t)
   have hKst_nonneg :
-      0 ≤ HopfieldBoltzmann.Kbm (NN:=NN) p T u s t := by
+      0 ≤ HopfieldBoltzmann.Kbm (NN := NN) p T u s t := by
     unfold HopfieldBoltzmann.Kbm; exact ENNReal.toReal_nonneg
   have hKts_nonneg :
-      0 ≤ HopfieldBoltzmann.Kbm (NN:=NN) p T u t s := by
+      0 ≤ HopfieldBoltzmann.Kbm (NN := NN) p T u t s := by
     unfold HopfieldBoltzmann.Kbm; exact ENNReal.toReal_nonneg
   rw [hπs, hπt, hκst, hκts,
       ← ENNReal.ofReal_mul, ← ENNReal.ofReal_mul, hReal]
   all_goals
     first
       | exact mul_nonneg hPs_nonneg hKst_nonneg
-      | simp_all only [μProd_singleton_of_fintype]
+      | aesop
 
 /-- Reversibility of the single–site kernel w.r.t. the Boltzmann measure. -/
 lemma singleSiteKernel_reversible
     (u : U) :
     ProbabilityTheory.Kernel.IsReversible
-      (singleSiteKernel (NN:=NN) spec p T u)
-      (πBoltz (NN:=NN) (spec:=spec) (p:=p) (T:=T)) := by
+      (singleSiteKernel (NN := NN) spec p T u)
+      (πBoltz (NN := NN) (spec:=spec) (p:=p) (T:=T)) := by
   letI : MeasurableSpace NN.State := ⊤
   letI : MeasurableSingletonClass NN.State := ⟨fun _ => trivial⟩
   refine Kernel.isReversible_of_pointwise_fintype
-      (π:=πBoltz (NN:=NN) (spec:=spec) (p:=p) (T:=T))
-      (κ:=singleSiteKernel (NN:=NN) spec p T u) ?_
+      (π:=πBoltz (NN := NN) (spec:=spec) (p:=p) (T:=T))
+      (κ:=singleSiteKernel (NN := NN) spec p T u) ?_
   intro x y
   simpa using
-    singleSite_pointwise_detailed_balance (NN:=NN) (spec:=spec) (p:=p) (T:=T) u x y
+    singleSite_pointwise_detailed_balance (NN := NN) (spec:=spec) (p:=p) (T:=T) u x y
 
 end SingleSitePointwise
 
@@ -721,28 +720,29 @@ open TwoState HopfieldBoltzmann ProbabilityTheory
 variable {U σ : Type} [Fintype U] [DecidableEq U] [Nonempty U]
 variable (NN : NeuralNetwork ℝ U σ) [Fintype NN.State] [DecidableEq NN.State] [Nonempty NN.State]
 variable [TwoStateNeuralNetwork NN] [TwoStateExclusive NN]
-variable (spec : TwoState.EnergySpec' (NN:=NN))
+variable (spec : TwoState.EnergySpec' (NN := NN))
 variable (p : Params NN) (T : Temperature)
 
 /-- Reversibility of the random–scan Gibbs kernel (uniform site choice) w.r.t.
 the Boltzmann measure. -/
 theorem randomScanKernel_reversible :
     ProbabilityTheory.Kernel.IsReversible
-      (randomScanKernel (NN:=NN) spec p T)
-      ((HopfieldBoltzmann.CEparams (NN:=NN) (spec:=spec) p).μProd T) := by
+      (randomScanKernel (NN := NN) spec p T)
+      ((HopfieldBoltzmann.CEparams (NN := NN) (spec:=spec) p).μProd T) := by
   have hSite :
       ∀ u : U,
         ProbabilityTheory.Kernel.IsReversible
-          (singleSiteKernel (NN:=NN) spec p T u)
-          ((HopfieldBoltzmann.CEparams (NN:=NN) (spec:=spec) p).μProd T) := by
+          (singleSiteKernel (NN := NN) spec p T u)
+          ((HopfieldBoltzmann.CEparams (NN := NN) (spec:=spec) p).μProd T) := by
     intro u
     simpa [πBoltz,
            HopfieldBoltzmann.CEparams] using
-      (singleSiteKernel_reversible (NN:=NN) (spec:=spec) (p:=p) (T:=T) u)
+      (singleSiteKernel_reversible (NN := NN) (spec:=spec) (p:=p) (T:=T) u)
   exact
     randomScanKernel_reversible_of_sites
-      (NN:=NN) (spec:=spec) (p:=p) (T:=T)
-      ((HopfieldBoltzmann.CEparams (NN:=NN) (spec:=spec) p).μProd T)
+      (NN := NN) (spec:=spec) (p:=p) (T:=T)
+      ((HopfieldBoltzmann.CEparams (NN := NN) (spec:=spec) p).μProd T)
       hSite
 
 end RandomScan
+#min_imports

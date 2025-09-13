@@ -13,7 +13,7 @@ maxSynthPendingDepth = 3
 [[require]]
 name = "PhysLean"
 git = "https://github.com/HepLean/PhysLean"
-rev = "main "
+rev = "main"
 
 [[lean_lib]]
 name = "NeuralNetwork"

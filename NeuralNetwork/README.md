@@ -11,6 +11,8 @@ The project is organized into two main directories:
 Below is a brief overview of the key files in the `NeuralNetwork` directory:
 
 - **`Core.lean`**: The root specification of a computable Hopfield network, including the energy function and proofs of convergence for deterministic updates.
+- **`test.lean`** – Computations and implementation of the Hebbian learning algorithm.  
+
 - **`TwoState.lean`**: Generalizes the core model to an abstract two-state neural network framework and introduces probabilistic Gibbs updates.
 - **`Convergence.lean`**: Formalizes convergence for any system with a strict Lyapunov function (a "Strictly Hamiltonian" system).
 - **`BoltzmannMachine.lean`**: Defines Boltzmann Machines as a specific instance of the two-state framework.

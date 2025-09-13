@@ -15,11 +15,9 @@ import Mathematics.Probability.DetailedBalanceGen
 import Mathematics.Topology.Compactness.ExtremeValueUSC
 
 import NeuralNetwork.aux
-import NeuralNetwork.Basic
 import NeuralNetwork.BoltzmannMachine
 import NeuralNetwork.Convergence
 import NeuralNetwork.Core
-import NeuralNetwork.CoreBri dgeLOF
 import NeuralNetwork.DetailedBalanceBM
 import NeuralNetwork.Ergodicity
 import NeuralNetwork.toCanonicalEnsemble

@@ -2,6 +2,7 @@ import NeuralNetwork.BoltzmannMachine
 
 set_option linter.unusedSectionVars false
 set_option linter.unusedSimpArgs false
+set_option linter.style.longLine false
 
 -- We provide a finite canonical ensemble instance for the Hopfield Boltzmann construction.
 instance

@@ -1,6 +1,11 @@
 import Mathematics.LinearAlgebra.Matrix.PerronFrobenius.Stochastic
 import NeuralNetwork.DetailedBalanceBM
 
+set_option linter.unusedSectionVars false
+set_option linter.unusedSimpArgs false
+set_option linter.style.longLine false
+
+
 /-!
 # Ergodicity of the Random–Scan Gibbs Kernel via Perron–Frobenius
 

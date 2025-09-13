@@ -23,6 +23,7 @@ import NeuralNetwork.CoreBridgeLOF
 import NeuralNetwork.DetailedBalanceBM
 import NeuralNetwork.Ergodicity
 import NeuralNetwork.toCanonicalEnsemble
+import NeuralNetwork.test
 import NeuralNetwork.TSAux
 import NeuralNetwork.TwoState
 import NeuralNetwork.ZeroTemp

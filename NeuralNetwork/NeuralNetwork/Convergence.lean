@@ -7,6 +7,10 @@ Authors: Matteo Cipollina, Michail Karatarakis
 import NeuralNetwork.BoltzmannMachine
 import NeuralNetwork.aux
 
+set_option linter.unusedSectionVars false
+set_option linter.unusedSimpArgs false
+set_option linter.style.longLine false
+
 /-!
 # Convergence of Strictly Hamiltonian Neural Networks
 This file defines the `IsStrictlyHamiltonian` typeclass abstraction for a physical system whose dynamics are guaranteed to converge to a

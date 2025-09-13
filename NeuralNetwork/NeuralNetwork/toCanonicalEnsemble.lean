@@ -3,6 +3,7 @@ import NeuralNetwork.TwoState
 
 set_option linter.unusedSectionVars false
 set_option linter.unusedSimpArgs false
+set_option linter.style.longLine false
 
 open MeasureTheory
 

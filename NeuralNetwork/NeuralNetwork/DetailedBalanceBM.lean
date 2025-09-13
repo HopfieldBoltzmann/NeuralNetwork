@@ -1,7 +1,6 @@
+import Mathlib.MeasureTheory.Constructions.Polish.Basic
+import Mathlib.Probability.Distributions.Uniform
 import NeuralNetwork.BoltzmannMachine
-import NeuralNetwork.toCanonicalEnsemble
-import Mathematics.Probability.DetailedBalanceGen
-import Mathlib
 
 set_option linter.unusedSectionVars false
 set_option linter.unusedSimpArgs false
@@ -642,7 +641,60 @@ lemma singleSiteKernel_singleton_eval
           simp [ENNReal.ofReal_toReal, hfin]
     _ = ENNReal.ofReal (HopfieldBoltzmann.Kbm (NN := NN) p T u s t) := rfl
 
-open Classical in
+open MeasureTheory
+open scoped ENNReal NNReal CanonicalEnsemble Temperature Constants
+
+namespace CanonicalEnsemble
+
+open Real Temperature MeasureTheory Constants
+open scoped Temperature CanonicalEnsemble
+
+variable {ι : Type} [Fintype ι] [MeasurableSpace ι]
+  [MeasurableSingletonClass ι] (𝓒 : CanonicalEnsemble ι)
+
+variable {ι1 : Type} [Fintype ι1] [MeasurableSpace ι1]
+  [MeasurableSingletonClass ι1] (𝓒1 : CanonicalEnsemble ι1)
+
+@[simp]
+lemma μProd_singleton (T : Temperature) [IsFinite 𝓒] (i : ι) [Nonempty ι] :
+    (𝓒.μProd T) {i} = ENNReal.ofReal (𝓒.probability T i) := by
+  classical
+  have h_univ_ne_top : (𝓒.μBolt T) Set.univ ≠ ∞ := by
+    have : (𝓒.μBolt T) Set.univ < ∞ := IsFiniteMeasure.measure_univ_lt_top
+    exact this.ne
+  have h_i_ne_top : (𝓒.μBolt T) {i} ≠ ∞ := by
+    have : (𝓒.μBolt T) {i} < ∞ :=
+      lt_of_le_of_lt (by exact measure_mono (Set.subset_univ {i}))
+                     IsFiniteMeasure.measure_univ_lt_top
+    exact this.ne
+  have hfin : (𝓒.μProd T) {i} ≠ ∞ := by
+    by_cases hz : (𝓒.μBolt T) Set.univ = 0
+    · have hi0 : (𝓒.μBolt T) {i} = 0 := by
+        have hle :
+            (𝓒.μBolt T) {i} ≤ (𝓒.μBolt T) Set.univ :=
+          measure_mono (Set.subset_univ {i})
+        have : (𝓒.μBolt T) {i} ≤ 0 := by simpa [hz] using hle
+        exact le_antisymm this (by simp)
+      simp [μProd, hz, hi0]
+    · have h_inv_ne_top : ((𝓒.μBolt T) Set.univ)⁻¹ ≠ ∞ :=
+        ENNReal.inv_ne_top.mpr (by exact hz)
+      have h_mul_ne_top :
+          ((𝓒.μBolt T) Set.univ)⁻¹ * (𝓒.μBolt T) {i} ≠ ∞ :=
+        ENNReal.mul_ne_top h_inv_ne_top h_i_ne_top
+      simpa [μProd] using h_mul_ne_top
+  have hreal : (𝓒.μProd T).real {i} = 𝓒.probability T i :=
+    μProd_of_fintype (𝓒:=𝓒) (T:=T) (i:=i)
+  calc
+    (𝓒.μProd T) {i}
+        = ENNReal.ofReal ((𝓒.μProd T) {i}).toReal := by
+            simp [ENNReal.ofReal_toReal, hfin]
+    _ = ENNReal.ofReal ((𝓒.μProd T).real {i}) := by
+            simp [measureReal_def]
+    _ = ENNReal.ofReal (𝓒.probability T i) := by
+            simp [hreal]
+
+end CanonicalEnsemble
+
 /-- Evaluation of the Boltzmann measure on a singleton as `ofReal` of the Boltzmann probability. -/
 lemma boltzmann_singleton_eval
     (s : NN.State) :
@@ -651,7 +703,13 @@ lemma boltzmann_singleton_eval
     ENNReal.ofReal (HopfieldBoltzmann.P (NN := NN) (spec:=spec) p T s) := by
   have _ : IsHamiltonian (U:=U) (σ:=σ) NN :=
     IsHamiltonian_of_EnergySpec' (NN := NN) (spec:=spec)
-  simp [πBoltz, HopfieldBoltzmann.P, HopfieldBoltzmann.CEparams, μProd_singleton_of_fintype]
+  classical
+  letI : MeasurableSpace NN.State := ⊤
+  letI : MeasurableSingletonClass NN.State := ⟨fun _ => trivial⟩
+  set 𝓒 := HopfieldBoltzmann.CEparams (NN := NN) (spec:=spec) p
+  have instFin : 𝓒.IsFinite := by
+    dsimp [𝓒, HopfieldBoltzmann.CEparams]; infer_instance
+  simp [πBoltz, HopfieldBoltzmann.P, HopfieldBoltzmann.CEparams]
 
 lemma singleSite_pointwise_detailed_balance
     (u : U) :
@@ -745,4 +803,4 @@ theorem randomScanKernel_reversible :
       hSite
 
 end RandomScan
-#min_imports
+end DetailedBalance

@@ -4,7 +4,8 @@ import NeuralNetwork.DetailedBalanceBM
 set_option linter.unusedSectionVars false
 set_option linter.unusedSimpArgs false
 set_option linter.style.longLine false
-
+set_option linter.style.commandStart false
+set_option linter.style.openClassical false
 
 /-!
 # Ergodicity of the Random–Scan Gibbs Kernel via Perron–Frobenius
@@ -62,7 +63,7 @@ proving the irreducibility of `RScol` (as a non–negative matrix).
 * `RScol_nonneg`: entrywise non–negativity.
 * `RScol_colsum_one`: stochastic (column sums = 1).
 * `RScol_diag_pos`: aperiodicity (strictly positive self–loops).
-* `RScol_exists_positive_power`: combinatorial PF–style communication lemma.
+* `RScol_exists_positive_power`: combinatorial lemma.
 * `RScol_irreducible`: strong connectivity ⇒ matrix irreducible in PF sense.
 * `RScol_unique_stationary_simplex`: Perron–Frobenius uniqueness of the
   stationary vector in the simplex.
@@ -163,6 +164,7 @@ lemma RScol_colsum_one :
   have hκ_eval : ∀ B, (κ t) B = q.toMeasure B := by
     intro B
     simp [randomScanKernel, pmfToKernel, Kernel.ofFunOfCountable, hq]
+    aesop
   have h1 :
     (∑ s, (κ t {s})) = (κ t Set.univ) := by
     -- Use q.toMeasure on both sides
